@@ -100,12 +100,12 @@
 			// 退出登录
 			async logout() {
 				// 询问用户是否退出登录
-				const [err, succ] = await uni.showModal({
+				const res = await uni.showModal({
 					title: '提示',
 					content: '确认退出登录吗？'
 				}).catch(err => err)
 
-				if (succ && succ.confirm) {
+				if (res && res.confirm) {
 					// 用户确认了退出登录的操作
 					// 需要清空 vuex 中的 userinfo、token 和 address
 					this.updateUserInfo({})
