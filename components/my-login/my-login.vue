@@ -84,33 +84,38 @@
 
 					console.log('登录请求参数:', query)
 
-					// 换取 token
+					// 换取 token - 使用真实接口
 					let loginResult
 					try {
 						const { data } = await uni.$http.post('/api/public/v1/users/wxlogin', query)
 						loginResult = data
 					} catch (apiError) {
-						console.log('接口调用失败，使用测试模式:', apiError)
-						// 测试环境下使用模拟数据
-						loginResult = {
-							meta: { status: 200, msg: 'success' },
-							message: { token: 'test_token_123456' }
-						}
+						console.log('接口调用失败:', apiError)
+						// 网络错误时使用测试模式
+						loginResult = null
 					}
 					
 					console.log('登录接口响应:', loginResult)
 					
+					// 判断登录是否成功，失败则使用测试模式
 					if (!loginResult || loginResult.meta.status !== 200) {
-						console.log('登录失败，状态码:', loginResult?.meta?.status, loginResult?.meta?.msg)
-						// 如果真实接口失败，使用测试模式
-						console.log('使用测试模式登录')
-						loginResult = {
-							meta: { status: 200, msg: 'success' },
-							message: { token: 'test_token_123456' }
-						}
+						console.log('真实登录失败，使用演示模式:', loginResult?.meta?.msg || '未知错误')
+						uni.showModal({
+							title: '提示',
+							content: '当前网络环境下无法完成真实登录，是否使用演示模式继续？',
+							success: (modalRes) => {
+								if (modalRes.confirm) {
+									// 使用演示 token
+									this.updateToken('demo_token_' + Date.now())
+									console.log('使用演示模式登录')
+									this.navigateBack()
+								}
+							}
+						})
+						return
 					}
 
-					// 2. 更新 vuex 中的 token
+					// 更新 vuex 中的 token
 					this.updateToken(loginResult.message.token)
 					console.log('token 更新成功:', loginResult.message.token)
 					
@@ -119,29 +124,59 @@
 					this.navigateBack()
 				} catch (err) {
 					console.log('登录过程发生异常:', err)
-					// 使用测试模式完成登录
-					console.log('使用测试模式登录')
-					this.updateToken('test_token_123456')
-					this.navigateBack()
+					uni.$showMsg('登录过程发生错误！')
 				}
 			},
 			// 返回登录之前的页面或跳转到首页
 			navigateBack() {
-			  // redirectInfo 不为 null，并且导航方式为 switchTab
-			  if (this.redirectInfo && this.redirectInfo.openType === 'switchTab') {
-			    // 调用小程序提供的 uni.switchTab() API 进行页面的导航
-			    uni.switchTab({
-			      // 要导航到的页面地址
-			      url: this.redirectInfo.from,
-			      // 导航成功之后，把 vuex 中的 redirectInfo 对象重置为 null
-			      complete: () => {
-			        this.updateRedirectInfo(null)
-			      }
-			    })
+			  // 如果有重定向信息，根据 openType 选择正确的导航方式
+			  if (this.redirectInfo) {
+			    if (this.redirectInfo.openType === 'switchTab') {
+			      // switchTab 用于 tabBar 页面
+			      uni.switchTab({
+			        url: this.redirectInfo.from,
+			        complete: () => {
+			          this.updateRedirectInfo(null)
+			        }
+			      })
+			    } else if (this.redirectInfo.openType === 'navigateBack') {
+			      // navigateBack 返回上一页
+			      uni.navigateBack({
+			        delta: this.redirectInfo.delta || 1,
+			        complete: () => {
+			          this.updateRedirectInfo(null)
+			        }
+			      })
+			    } else if (this.redirectInfo.openType === 'redirectTo') {
+			      // redirectTo 跳转到非 tabBar 页面
+			      uni.redirectTo({
+			        url: this.redirectInfo.from,
+			        complete: () => {
+			          this.updateRedirectInfo(null)
+			        }
+			      })
+			    } else {
+			      // 默认使用 switchTab 跳转到首页
+			      uni.switchTab({
+			        url: '/pages/home/home',
+			        complete: () => {
+			          this.updateRedirectInfo(null)
+			        }
+			      })
+			    }
 			  } else {
-			    // 如果没有重定向信息，默认跳转到首页（tabBar 页面）
-			    uni.switchTab({
-			      url: '/pages/home/home',
+			    // 如果没有重定向信息，尝试返回上一页
+			    uni.navigateBack({
+			      delta: 1,
+			      fail: () => {
+			        // 如果页面栈为空，跳转到首页
+			        uni.switchTab({
+			          url: '/pages/home/home',
+			          complete: () => {
+			            this.updateRedirectInfo(null)
+			          }
+		        })
+			      },
 			      complete: () => {
 			        this.updateRedirectInfo(null)
 			      }
