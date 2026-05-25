@@ -8,7 +8,7 @@
 			<view class="goods-name">{{goods.goods_name}}</view>
 			<view class="goods-info-box">
 				<view class="goods-price">￥{{goods.goods_price | tofixed}}</view>
-				<uni-number-box :min="1" :value="goods.goods_count" @change="numChangeHandler"></uni-number-box>
+				<uni-number-box :min="1" :value="goods.goods_count" @change="numChangeHandler" v-if="showNum"></uni-number-box>
 			</view>
 		</view>
 	</view>
@@ -50,12 +50,18 @@
 
 <style lang="scss">
 	.goods-item {
-		display: flex;
-		padding: 10px 5px;
-		border-bottom: 1px solid #f0f0f0;
+	  // 让 goods-item 项自适应宽度
+	  width: 100%;
+	  // 设置盒模型为 border-box
+	  box-sizing: border-box;
+	  display: flex;
+	  padding: 10px 5px;
+	  border-bottom: 1px solid #f0f0f0;
 	}
 	.goods-item-left {
 		margin-right: 5px;
+		display: flex;
+		align-items: center;
 	}
 	.goods-pic {
 		width: 100px;

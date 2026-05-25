@@ -16,7 +16,7 @@
 					<text>收藏</text>
 				</view>
 			</view>
-			<view class="yf">快递：免运费 -- {{cart.length}}</view>
+			<view class="yf">快递：免运费</view>
 		</view>
 		<!-- 商品详情信息 -->
 		<rich-text :nodes="goods_info.goods_introduce"></rich-text>
@@ -30,8 +30,10 @@
 
 <script>
 import { mapState, mapMutations, mapGetters } from 'vuex'
+import badgeMix from '@/mixins/tabbar-badge.js'
 
 export default {
+	mixins: [badgeMix],
 	data() {
 		return {
 			goods_info: {},

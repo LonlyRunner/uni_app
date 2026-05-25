@@ -8,15 +8,9 @@
 			<text class="cart-title-text">购物车</text>
 		</view>
 		<!-- 商品列表区域 -->
-		<view v-if="cart.length === 0" class="empty-cart">
-			<text>购物车是空的</text>
-		</view>
-		<view v-else>
-			<view v-for="(goods, i) in cart" :key="i" class="cart-item">
-				<my-goods :goods="goods" :show-radio="true" :show-num="true" @radio-change="radioChangeHandler"
-					@num-change="numberChangeHandler"></my-goods>
-				<button @click="removeGoods(goods.goods_id)" class="delete-btn">删除</button>
-			</view>
+		<view v-for="(goods, i) in cart" :key="i" class="cart-item">
+			<my-goods :goods="goods" :show-radio="true" :show-num="true" @radio-change="radioChangeHandler" @num-change="numberChangeHandler"></my-goods>
+			<button @click="removeGoods(goods.goods_id)" class="delete-btn">删除</button>
 		</view>
 		<!-- 结算区域 -->
 		<my-settle></my-settle>
@@ -44,28 +38,21 @@
 			...mapGetters('m_cart', ['total']),
 		},
 		onShow() {
-			this.updateBadge()
+			this.setBadge()
 		},
 		methods: {
 			...mapMutations('m_cart', ['updateGoodsState', 'updateGoodsCount', 'removeGoodsById']),
 			radioChangeHandler(e) {
 				this.updateGoodsState(e)
-				this.updateBadge()
+				this.setBadge()
 			},
 			numberChangeHandler(e) {
 				this.updateGoodsCount(e)
-				this.updateBadge()
+				this.setBadge()
 			},
 			removeGoods(goods_id) {
 				this.removeGoodsById(goods_id)
-				this.updateBadge()
-			},
-			updateBadge() {
-				uni.setTabBarBadge({
-					index: 2,
-					text: this.total + '',
-					fail: () => {}
-				})
+				this.setBadge()
 			}
 		}
 	}
@@ -85,6 +72,22 @@
 		margin-left: 10px;
 	}
 
+	.cart-item {
+		display: flex;
+		align-items: center;
+		padding-right: 10px;
+	}
+
+	.delete-btn {
+		background-color: #C00000;
+		color: #fff;
+		font-size: 12px;
+		padding: 5px 10px;
+		border-radius: 5px;
+		margin-left: 5px;
+		flex-shrink: 0;
+	}
+
 	.empty-cart {
 		display: flex;
 		justify-content: center;
@@ -92,33 +95,17 @@
 		height: 200px;
 		color: #999;
 	}
-
-	.cart-item {
-		position: relative;
-	}
-
-	.delete-btn {
-		position: absolute;
-		right: 10px;
-		top: 50%;
-		transform: translateY(-50%);
-		background-color: #C00000;
-		color: #fff;
-		font-size: 12px;
-		padding: 5px 10px;
-		border-radius: 5px;
-	}
 	.empty-cart {
 	  display: flex;
 	  flex-direction: column;
 	  align-items: center;
 	  padding-top: 150px;
-	
+
 	  .empty-img {
 	    width: 90px;
 	    height: 90px;
 	  }
-	
+
 	  .tip-text {
 	    font-size: 12px;
 	    color: gray;
